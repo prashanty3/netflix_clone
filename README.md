@@ -1,13 +1,68 @@
-# React + Vite
+🧑‍💻 Developer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+👤 Prashant Rao
+💼 Full Stack Developer | DevOps Enthusiast
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# 🎬 Netflix Clone – Watch Your Favorites Anytime!
 
-## Expanding the ESLint configuration
+> A high-performance Netflix clone built using **React.js**, **Tailwind CSS**, and **Vite**, designed to replicate the look and feel of the world’s most popular streaming platform.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# netflix_clone
+---
+
+## 🚀 Features
+
+✅ **Modern UI/UX** inspired by Netflix  
+✅ **Responsive design** – works on all devices  
+✅ **Dynamic movie listings** with smooth hover animations  
+✅ **Fully functional authentication** (Login / Signup)  
+✅ **Firebase backend integration**  
+✅ **Trailer playback using YouTube API**  
+✅ **Optimized with lazy loading and reusable components**  
+
+---
+
+## 🧠 Tech Stack
+
+| Category | Technology |
+|-----------|-------------|
+| Frontend | React.js + Vite |
+| Styling | Tailwind CSS |
+| Backend | Firebase (Auth + Firestore) |
+| API | TMDB (The Movie Database API) |
+| Deployment | Docker / Vercel / Netlify |
+
+---
+
+## 🧰 Installation & Setup
+
+Follow these steps to run locally 👇
+
+```bash
+# Clone the repository
+git clone https://github.com/prashanty3/netflix_clone.git
+
+# Navigate into the project folder
+cd netflix_clone
+
+# Install dependencies
+npm install
+
+# Run the project
+npm run dev
+
+
+Follow these steps to run on Docker 👇
+
+```bash
+# Clone the repository
+git clone https://github.com/prashanty3/netflix_clone.git
+
+# Navigate into the project folder
+cd netflix_clone
+
+# Build Docker image
+docker build -t netflix-clone .
+
+# Run the container
+docker run -d -p 3000:80 netflix-clone
