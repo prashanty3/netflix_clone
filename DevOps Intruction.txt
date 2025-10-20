@@ -290,17 +290,15 @@ StartLimitBurst=5
 User=node_exporter
 Group=node_exporter
 Type=simple
+ExecStart=/usr/local/bin/node_exporter --collector.logind
 Restart=on-failure
 RestartSec=5s
-ExecStart=/usr/local/bin/node_exporter --collector.logind
 
 [Install]
 WantedBy=multi-user.target
 
 
 
-
-Replace --collector.logind with any additional flags as needed.
 
 Enable and start Node Exporter:
 
@@ -320,6 +318,8 @@ Integrate Jenkins with Prometheus to monitor the CI/CD pipeline.
 Prometheus Configuration:
 
 To configure Prometheus to scrape metrics from Node Exporter and Jenkins, you need to modify the prometheus.yml file. Here is an example prometheus.yml configuration for your setup:
+cd /etc/prometheus
+
 
 global:
   scrape_interval: 15s
