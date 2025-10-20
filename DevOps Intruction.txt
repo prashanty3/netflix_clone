@@ -1,0 +1,472 @@
+1-- We have to check the application in ubuntu
+
+    a-- first create Ubuntu machine with min 30GB storage
+
+    b-- update ubuntu – sudo apt upgrade -y
+
+    c-- Install git – sudo apt install git -y
+
+    d-- clone git repository → git clone https://github.com/prashanty3/netflix_clone.git
+
+    e-- go to git repo –  cd netflix_clone
+
+    e-- Install Jenkins
+
+        i-- sudo apt install nano → nano jenkins.sh
+
+        sudo apt update
+        sudo apt install fontconfig openjdk-21-jre
+        java -version
+
+        sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+        https://pkg.jenkins.io/debian/jenkins.io-2023.key
+        echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
+        https://pkg.jenkins.io/debian binary/ | sudo tee \
+        /etc/apt/sources.list.d/jenkins.list > /dev/null
+        sudo apt update
+        sudo apt install jenkins
+
+        sudo systemctl enable jenkins
+        sudo systemctl start jenkins
+
+        sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+
+
+        ii- change the mode of the file -→ chmod +x jenkins.sh
+
+        ii-- run the file → ./jenkins.sh
+
+        iii-- Copy the last line code for login jenkins> External_IP:8080
+
+    f-- Install Docker
+
+        i-- nano docker.sh
+        ii-- paste the below code
+
+            sudo apt-get update
+            sudo apt-get install docker.io -y
+            sudo usermod -aG docker $USER 
+            newgrp docker
+            sudo chmod 777 /var/run/docker.sock
+
+        iii-- chmod +x docker.sh
+
+        iv-- run the file → ./docker.sh
+
+        v-- sudo apt install npm
+
+        vi-- docker build -t netflix .
+
+        docker images
+        (get the image of docker with the name of Netflix)
+
+        vii-- docker run -d -p 8081:80 <netflix -> image_id>
+
+    g-- Install SonarQube on the EC2 instance to scan for vulnerabilities.
+
+    docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
+
+    publicIP:9000 (by default username & password is admin)
+
+    h-- Install Trivy on the EC2 instance to scan for vulnerabilities.
+
+        sudo apt-get install wget apt-transport-https gnupg lsb-release
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update
+        sudo apt-get install trivy
+
+    trivy image <imageid>
+
+
+
+Install Necessary Plugins in Jenkins:
+
+Goto Manage Jenkins →Plugins → Available Plugins →
+
+Install below plugins
+
+    1 Eclipse Temurin Installer (Install without restart)
+
+    2 SonarQube Scanner (Install without restart)
+
+    3 NodeJs Plugin (Install Without restart)
+
+    4 Email Extension Plugin
+
+SonarQube
+
+Create the token
+
+open SonarQube → Administration → Security → Users → tokens(click on hamburger) → give token name(netflix_clone) and click on Generate
+
+it will generate one Token(if you miss to copy then it will not come again)
+
+Goto Jenkins Dashboard → Manage Jenkins → Credentials → Add Secret Text. It should look like this
+
+After adding sonar_token
+
+Click on Apply and Save
+
+Configure Java and Nodejs in Global Tool Configuration
+
+    1-- Goto Manage Jenkins
+
+    2-- Tools
+
+        i-- JDK Installation → name(jdk17) →install automatic (v17.0.16+8)
+
+        ii-- SonarQube Scanner → name(sonar-scanner) →install automatically (latest version)
+
+        iii-- NodeJs → name(node21) →install automatically (21.0.0)
+
+    Apply then Save
+
+    3-- System
+
+        i-- SonarQube servers: name(sonar_server)  → server_url(http://104.197.5.202:9000/) → Server authentication token(sonar_token)
+
+
+
+Install Dependency-Check and Docker Tools in Jenkins
+
+Install Dependency-Check Plugin:
+
+    Go to "Dashboard" in your Jenkins web interface.
+    Navigate to "Manage Jenkins" → "Manage Plugins."
+    Click on the "Available" tab and search for "OWASP Dependency-Check."
+    Check the checkbox for "OWASP Dependency-Check" and click on the "Install without restart" button.
+
+Configure Dependency-Check Tool:
+
+    After installing the Dependency-Check plugin, you need to configure the tool.
+    Go to "Dashboard" → "Manage Jenkins" → "Global Tool Configuration."
+    Find the section for "OWASP Dependency-Check."
+    Add the tool's name, e.g., "DP-Check."
+    Save your settings.
+
+Install Docker Tools and Docker Plugins:
+
+    Go to "Dashboard" in your Jenkins web interface.
+    Navigate to "Manage Jenkins" → "Manage Plugins."
+    Click on the "Available" tab and search for "Docker."
+    Check the following Docker-related plugins:
+
+    Docker
+    Docker Commons
+    Docker Pipeline
+    Docker API
+    docker-build-step
+    Click on the "Install without restart" button to install these plugins.
+
+Add DockerHub Credentials:
+
+To securely handle DockerHub credentials in your Jenkins pipeline, follow these steps:
+
+    Go to "Dashboard" → "Manage Jenkins" → "Manage Credentials."
+    Click on "System" and then "Global credentials (unrestricted)."
+    Click on "Add Credentials" on the left side.
+    Choose "Secret text" as the kind of credentials.
+    Enter your DockerHub credentials (Username and Password) and give the credentials an ID (e.g., "docker").
+
+
+Click "OK" to save your DockerHub credentials.
+
+
+
+
+
+Monitoring
+
+Install Prometheus and Grafana:
+
+Set up Prometheus and Grafana to monitor your application.
+
+Installing Prometheus:
+
+First, create a dedicated Linux user for Prometheus and download Prometheus:
+
+sudo useradd --system --no-create-home --shell /bin/false prometheus
+wget https://github.com/prometheus/prometheus/releases/download/v2.47.1/prometheus-2.47.1.linux-amd64.tar.gz
+
+Extract Prometheus files, move them, and create directories:
+
+tar -xvf prometheus-2.47.1.linux-amd64.tar.gz
+cd prometheus-2.47.1.linux-amd64/
+sudo mkdir -p /data /etc/prometheus
+sudo mv prometheus promtool /usr/local/bin/
+sudo mv consoles/ console_libraries/ /etc/prometheus/
+sudo mv prometheus.yml /etc/prometheus/prometheus.yml
+
+Set ownership for directories:
+
+sudo chown -R prometheus:prometheus /etc/prometheus/ /data/
+#Create a systemd unit configuration file for Prometheus:
+sudo nano /etc/systemd/system/prometheus.service
+
+
+
+Add the following content to the prometheus.service file:
+
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/prometheus \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/data \
+  --web.console.templates=/etc/prometheus/consoles \
+  --web.console.libraries=/etc/prometheus/console_libraries \
+  --web.listen-address=0.0.0.0:9090 \
+  --web.enable-lifecycle
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+Here's a brief explanation of the key parts in this prometheus.service file:
+
+User and Group specify the Linux user and group under which Prometheus will run.
+
+ExecStart is where you specify the Prometheus binary path, the location of the configuration file (prometheus.yml), the storage directory, and other settings.
+
+web.listen-address configures Prometheus to listen on all network interfaces on port 9090.
+
+web.enable-lifecycle allows for management of Prometheus through API calls.
+
+
+
+Enable and start Prometheus:
+
+sudo systemctl enable prometheus
+sudo systemctl start prometheus
+
+Verify Prometheus's status:(Optional)
+
+sudo systemctl status prometheus
+
+
+
+You can access Prometheus in a web browser using your server's IP and port 9090:
+
+http://<your-server-ip>:9090
+
+Installing Node Exporter:
+
+Create a system user for Node Exporter and download Node Exporter:
+
+sudo useradd --system --no-create-home --shell /bin/false node_exporter wget https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz
+#Extract Node Exporter files, move the binary, and clean up:
+tar -xvf node_exporter-1.6.1.linux-amd64.tar.gz
+sudo mv node_exporter-1.6.1.linux-amd64/node_exporter /usr/local/bin/
+rm -rf node_exporter*
+#Create a systemd unit configuration file for Node Exporter:
+sudo nano /etc/systemd/system/node_exporter.service
+
+Add the following content to the node_exporter.service file:
+
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/node_exporter --collector.logind
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+Replace --collector.logind with any additional flags as needed.
+
+Enable and start Node Exporter:
+
+sudo systemctl enable node_exporter
+sudo systemctl start node_exporter
+
+Verify the Node Exporter's status:
+
+sudo systemctl status node_exporter
+
+You can access Node Exporter metrics in Prometheus.
+
+Configure Prometheus Plugin Integration:
+
+Integrate Jenkins with Prometheus to monitor the CI/CD pipeline.
+
+Prometheus Configuration:
+
+To configure Prometheus to scrape metrics from Node Exporter and Jenkins, you need to modify the prometheus.yml file. Here is an example prometheus.yml configuration for your setup:
+
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  - job_name: 'jenkins'
+    metrics_path: '/prometheus'
+    static_configs:
+      - targets: ['<your-jenkins-ip>:<your-jenkins-port>']
+
+
+
+Make sure to replace <your-jenkins-ip> and <your-jenkins-port> with the appropriate values for your Jenkins setup.
+
+Check the validity of the configuration file:
+
+promtool check config /etc/prometheus/prometheus.yml
+
+Reload the Prometheus configuration without restarting:
+
+curl -X POST http://localhost:9090/-/reload
+
+You can access Prometheus targets at:
+
+http://<your-prometheus-ip>:9090/targets
+
+####Grafana
+
+Install Grafana on Ubuntu 22.04 and Set it up to Work with Prometheus
+
+Step 1: Install Dependencies:
+
+First, ensure that all necessary dependencies are installed:
+
+sudo apt-get update
+sudo apt-get install -y apt-transport-https software-properties-common
+
+Step 2: Add the GPG Key:
+
+Add the GPG key for Grafana:
+
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+
+
+
+Step 3: Add Grafana Repository:
+
+Add the repository for Grafana stable releases:
+
+echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+
+
+
+Step 4: Update and Install Grafana:
+
+Update the package list and install Grafana:
+
+sudo apt-get update
+sudo apt-get -y install grafana
+
+
+
+Step 5: Enable and Start Grafana Service:
+
+To automatically start Grafana after a reboot, enable the service:
+
+sudo systemctl enable grafana-server
+
+
+
+Then, start Grafana:
+
+sudo systemctl start grafana-server
+
+
+
+Step 6: Check Grafana Status:
+
+Verify the status of the Grafana service to ensure it's running correctly:
+
+sudo systemctl status grafana-server
+
+
+
+Step 7: Access Grafana Web Interface:
+
+Open a web browser and navigate to Grafana using your server's IP address. The default port for Grafana is 3000. For example:
+
+http://<your-server-ip>:3000
+
+You'll be prompted to log in to Grafana. The default username is "admin," and the default password is also "admin."
+
+Step 8: Change the Default Password:
+
+When you log in for the first time, Grafana will prompt you to change the default password for security reasons. Follow the prompts to set a new password.
+
+Step 9: Add Prometheus Data Source:
+
+To visualize metrics, you need to add a data source. Follow these steps:
+
+Click on the gear icon (⚙️) in the left sidebar to open the "Configuration" menu.
+
+Select "Data Sources."
+
+Click on the "Add data source" button.
+
+Choose "Prometheus" as the data source type.
+
+In the "HTTP" section:
+
+Set the "URL" to http://localhost:9090 (assuming Prometheus is running on the same server).
+Click the "Save & Test" button to ensure the data source is working.
+
+Step 10: Import a Dashboard:
+
+To make it easier to view metrics, you can import a pre-configured dashboard. Follow these steps:
+
+Click on the "+" (plus) icon in the left sidebar to open the "Create" menu.
+
+Select "Dashboard."
+
+Click on the "Import" dashboard option.
+
+Enter the dashboard code you want to import (e.g., code 1860).
+
+Click the "Load" button.
+
+Select the data source you added (Prometheus) from the dropdown.
+
+Click on the "Import" button.
+
+You should now have a Grafana dashboard set up to visualize metrics from Prometheus.
+
+Grafana is a powerful tool for creating visualizations and dashboards, and you can further customize it to suit your specific monitoring needs.
+
+That's it! You've successfully installed and set up Grafana to work with Prometheus for monitoring and visualization.
+
+Configure Prometheus Plugin Integration:
+
+Integrate Jenkins with Prometheus to monitor the CI/CD pipeline.
+
+Phase 5: Notification
+
+Implement Notification Services:
+
+Set up email notifications in Jenkins or other notification mechanisms.
